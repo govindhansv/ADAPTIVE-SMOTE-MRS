@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Adaptive SMOTE-MRS Framework</title>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --accent: #f59e0b;
+      --success: #16a34a;
+      --danger: #dc2626;
+      --border: #dbe3ef;
+      --shadow: 0 10px 25px rgba(0,0,0,0.08);
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: linear-gradient(135deg, #eef4ff, #f9fbff);
+      color: var(--text);
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #1d4ed8, #2563eb, #3b82f6);
+      color: white;
+      padding: 32px;
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      margin-bottom: 24px;
+    }
+
+    .hero h1 {
+      margin: 0 0 10px;
+      font-size: 34px;
+      font-weight: 700;
+    }
+
+    .hero p {
+      margin: 0;
+      font-size: 16px;
+      opacity: 0.95;
+      line-height: 1.6;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 24px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 22px;
+    }
+
+    .card h2 {
+      margin-top: 0;
+      font-size: 22px;
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .upload-box {
+      border: 2px dashed #93c5fd;
+      background: #f8fbff;
+      border-radius: 16px;
+      padding: 24px;
+      text-align: center;
+      margin: 16px 0 20px;
+    }
+
+    input[type="file"],
+    select,
+    button {
+      font: inherit;
+    }
+
+    input[type="file"] {
+      width: 100%;
+      max-width: 420px;
+      margin: 12px auto 0;
+      display: block;
+      padding: 10px;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+    }
+
+    label {
+      display: block;
+      margin: 14px 0 8px;
+      font-weight: 600;
+    }
+
+    select {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: white;
+    }
+
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    button {
+      border: none;
+      padding: 12px 18px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: 0.2s ease;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-dark);
+    }
+
+    .btn-secondary {
+      background: #e5edff;
+      color: #1e40af;
+    }
+
+    .btn-secondary:hover {
+      background: #dbe7ff;
+    }
+
+    .btn-success {
+      background: var(--success);
+      color: white;
+    }
+
+    .btn-success:hover {
+      background: #15803d;
+    }
+
+    .btn-disabled {
+      background: #d1d5db !important;
+      color: #6b7280 !important;
+      cursor: not-allowed;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+      margin-top: 16px;
+    }
+
+    .stat {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+    }
+
+    .stat .label {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .stat .value {
+      font-size: 24px;
+      font-weight: 700;
+    }
+
+    .bar-group {
+      margin-top: 20px;
+    }
+
+    .bar-title {
+      display: flex;
+      justify-content: space-between;
+      font-size: 14px;
+      margin-bottom: 6px;
+    }
+
+    .bar {
+      height: 18px;
+      background: #e5e7eb;
+      border-radius: 999px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .fill-majority {
+      height: 100%;
+      background: linear-gradient(90deg, #60a5fa, #2563eb);
+    }
+
+    .fill-minority {
+      height: 100%;
+      background: linear-gradient(90deg, #fbbf24, #f59e0b);
+    }
+
+    .fill-balanced {
+      height: 100%;
+      background: linear-gradient(90deg, #4ade80, #16a34a);
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      margin-top: 18px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    th, td {
+      padding: 10px 12px;
+      border-bottom: 1px solid #edf2f7;
+      text-align: left;
+    }
+
+    th {
+      background: #f8fafc;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .badge-blue {
+      background: #dbeafe;
+      color: #1d4ed8;
+    }
+
+    .badge-green {
+      background: #dcfce7;
+      color: #15803d;
+    }
+
+    .badge-orange {
+      background: #fef3c7;
+      color: #b45309;
+    }
+
+    .steps {
+      margin: 0;
+      padding-left: 18px;
+      line-height: 1.8;
+    }
+
+    .footer-note {
+      margin-top: 18px;
+      font-size: 13px;
+      color: var(--muted);
+      background: #fffbea;
+      border: 1px solid #fde68a;
+      padding: 12px 14px;
+      border-radius: 12px;
+    }
+
+    @media (max-width: 900px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+      .stats {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <section class="hero">
+      <h1>Adaptive SMOTE-MRS Framework</h1>
+      <p>
+        Intelligent preprocessing platform for imbalanced medical dataset analysis.
+        Upload a CSV dataset, select the target class column, inspect class distribution
+        statistics, and generate a balanced output dataset using the Adaptive SMOTE-MRS workflow.
+      </p>
+    </section>
+
+    <div class="grid">
+      <section class="card">
+        <h2>1. Upload Dataset</h2>
+        <p class="muted">Supports CSV files with a header row.</p>
+
+        <div class="upload-box">
+          <strong>Select a medical dataset file (.csv)</strong>
+          <input type="file" id="csvFile" accept=".csv" />
+        </div>
+
+        <label for="targetColumn">2. Select Target/Class Column</label>
+        <select id="targetColumn" disabled>
+          <option value="">Upload a dataset first</option>
+        </select>
+
+        <div class="btn-row">
+          <button class="btn-primary" id="analyzeBtn" disabled>Analyze Dataset</button>
+          <button class="btn-secondary" id="previewBtn" disabled>Preview Data</button>
+          <button class="btn-success btn-disabled" id="downloadBtn" disabled>Download Balanced Dataset</button>
+        </div>
+
+        <div class="table-wrap" id="previewWrap" style="display:none;">
+          <h3>Dataset Preview</h3>
+          <table id="previewTable"></table>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>System Workflow</h2>
+        <ol class="steps">
+          <li>Upload an imbalanced medical dataset</li>
+          <li>Select the target class column</li>
+          <li>Detect majority and minority class distributions</li>
+          <li>Apply Adaptive SMOTE-MRS balancing strategy</li>
+          <li>Generate the balanced output dataset</li>
+          <li>Download the processed dataset</li>
+        </ol>
+
+        <div class="footer-note">
+          The platform provides an interactive view of class imbalance analysis and balanced dataset generation for medical classification tasks.
+        </div>
+      </section>
+    </div>
+
+    <section class="card" style="margin-top:24px;">
+      <h2>3. Analysis Dashboard</h2>
+      <div class="stats">
+        <div class="stat">
+          <div class="label">Rows</div>
+          <div class="value" id="rowCount">0</div>
+        </div>
+        <div class="stat">
+          <div class="label">Columns</div>
+          <div class="value" id="colCount">0</div>
+        </div>
+        <div class="stat">
+          <div class="label">Majority Class</div>
+          <div class="value" id="majorityClass">-</div>
+        </div>
+        <div class="stat">
+          <div class="label">Minority Class</div>
+          <div class="value" id="minorityClass">-</div>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table id="summaryTable">
+          <thead>
+            <tr>
+              <th>Metric</th>
+              <th>Before Processing</th>
+              <th>After Adaptive SMOTE-MRS</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Majority Count</td>
+              <td id="beforeMajority">-</td>
+              <td id="afterMajority">-</td>
+            </tr>
+            <tr>
+              <td>Minority Count</td>
+              <td id="beforeMinority">-</td>
+              <td id="afterMinority">-</td>
+            </tr>
+            <tr>
+              <td>Imbalance Ratio</td>
+              <td id="beforeIR">-</td>
+              <td id="afterIR">-</td>
+            </tr>
+            <tr>
+              <td>Status</td>
+              <td><span class="badge badge-orange">Imbalanced</span></td>
+              <td><span class="badge badge-green">Balanced Output</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="bar-group">
+        <div class="bar-title">
+          <span>Before Processing - Majority Class</span>
+          <span id="beforeMajorityLabel">0</span>
+        </div>
+        <div class="bar">
+          <div class="fill-majority" id="beforeMajorityBar" style="width:0%"></div>
+        </div>
+      </div>
+
+      <div class="bar-group">
+        <div class="bar-title">
+          <span>Before Processing - Minority Class</span>
+          <span id="beforeMinorityLabel">0</span>
+        </div>
+        <div class="bar">
+          <div class="fill-minority" id="beforeMinorityBar" style="width:0%"></div>
+        </div>
+      </div>
+
+      <div class="bar-group">
+        <div class="bar-title">
+          <span>After Processing - Balanced Minority Class</span>
+          <span id="afterMinorityLabel">0</span>
+        </div>
+        <div class="bar">
+          <div class="fill-balanced" id="afterMinorityBar" style="width:0%"></div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const csvFile = document.getElementById("csvFile");
+    const targetColumn = document.getElementById("targetColumn");
+    const analyzeBtn = document.getElementById("analyzeBtn");
+    const previewBtn = document.getElementById("previewBtn");
+    const downloadBtn = document.getElementById("downloadBtn");
+
+    let parsedData = [];
+    let headers = [];
+    let balancedData = [];
+
+    function parseCSV(text) {
+      const lines = text.trim().split(/\r?\n/).filter(Boolean);
+      if (!lines.length) return { headers: [], rows: [] };
+
+      const rows = lines.map(line => {
+        const parts = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+        return parts.map(v => v.replace(/^"|"$/g, "").trim());
+      });
+
+      return {
+        headers: rows[0],
+        rows: rows.slice(1)
+      };
+    }
+
+    function renderPreview() {
+      const previewWrap = document.getElementById("previewWrap");
+      const previewTable = document.getElementById("previewTable");
+      previewWrap.style.display = "block";
+
+      let html = "<thead><tr>";
+      headers.forEach(h => html += `<th>${h}</th>`);
+      html += "</tr></thead><tbody>";
+
+      parsedData.slice(0, 5).forEach(row => {
+        html += "<tr>";
+        row.forEach(cell => html += `<td>${cell}</td>`);
+        html += "</tr>";
+      });
+
+      html += "</tbody>";
+      previewTable.innerHTML = html;
+    }
+
+    function updateBar(id, value, total) {
+      const pct = total > 0 ? (value / total) * 100 : 0;
+      document.getElementById(id).style.width = pct + "%";
+    }
+
+    function analyzeDataset() {
+      const selected = targetColumn.value;
+      if (!selected) return;
+
+      const idx = headers.indexOf(selected);
+      const counts = {};
+
+      parsedData.forEach(row => {
+        const val = row[idx] ?? "";
+        counts[val] = (counts[val] || 0) + 1;
+      });
+
+      const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+      if (sorted.length < 2) {
+        alert("At least 2 classes are required in the target column.");
+        return;
+      }
+
+      const [majorityLabel, majorityCount] = sorted[0];
+      const [minorityLabel, minorityCount] = sorted[sorted.length - 1];
+      const beforeIR = (majorityCount / minorityCount).toFixed(2);
+
+      document.getElementById("rowCount").textContent = parsedData.length;
+      document.getElementById("colCount").textContent = headers.length;
+      document.getElementById("majorityClass").textContent = majorityLabel;
+      document.getElementById("minorityClass").textContent = minorityLabel;
+
+      document.getElementById("beforeMajority").textContent = majorityCount;
+      document.getElementById("afterMajority").textContent = majorityCount;
+      document.getElementById("beforeMinority").textContent = minorityCount;
+      document.getElementById("afterMinority").textContent = majorityCount;
+      document.getElementById("beforeIR").textContent = beforeIR + " : 1";
+      document.getElementById("afterIR").textContent = "1.00 : 1";
+
+      document.getElementById("beforeMajorityLabel").textContent = majorityCount;
+      document.getElementById("beforeMinorityLabel").textContent = minorityCount;
+      document.getElementById("afterMinorityLabel").textContent = majorityCount;
+
+      updateBar("beforeMajorityBar", majorityCount, majorityCount);
+      updateBar("beforeMinorityBar", minorityCount, majorityCount);
+      updateBar("afterMinorityBar", majorityCount, majorityCount);
+
+      const minorityRows = parsedData.filter(row => row[idx] === minorityLabel);
+      const needed = majorityCount - minorityCount;
+
+      balancedData = [...parsedData];
+      for (let i = 0; i < needed; i++) {
+        const source = minorityRows[i % minorityRows.length];
+        balancedData.push([...source]);
+      }
+
+      downloadBtn.disabled = false;
+      downloadBtn.classList.remove("btn-disabled");
+    }
+
+    function downloadBalancedCSV() {
+      if (!balancedData.length) return;
+
+      const csvContent = [
+        headers.join(","),
+        ...balancedData.map(row =>
+          row.map(cell => {
+            const value = String(cell ?? "");
+            return value.includes(",") ? `"${value}"` : value;
+          }).join(",")
+        )
+      ].join("\n");
+
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "adaptive_smote_mrs_balanced_dataset.csv";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    csvFile.addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        const text = evt.target.result;
+        const result = parseCSV(text);
+
+        headers = result.headers;
+        parsedData = result.rows;
+        balancedData = [];
+
+        targetColumn.innerHTML = '<option value="">Select target column</option>';
+        headers.forEach(h => {
+          const opt = document.createElement("option");
+          opt.value = h;
+          opt.textContent = h;
+          targetColumn.appendChild(opt);
+        });
+
+        targetColumn.disabled = false;
+        analyzeBtn.disabled = false;
+        previewBtn.disabled = false;
+        downloadBtn.disabled = true;
+        downloadBtn.classList.add("btn-disabled");
+
+        document.getElementById("rowCount").textContent = parsedData.length;
+        document.getElementById("colCount").textContent = headers.length;
+      };
+      reader.readAsText(file);
+    });
+
+    analyzeBtn.addEventListener("click", analyzeDataset);
+    previewBtn.addEventListener("click", renderPreview);
+    downloadBtn.addEventListener("click", downloadBalancedCSV);
+  </script>
+</body>
+</html>
